@@ -82,6 +82,9 @@ Step 1: //Initialize a BillingClient with PurchasesUpdatedListener<br>
                 .enablePendingPurchases()
                 .build();
                 
+      // call connectGooglePlayBilling()
+      connectGooglePlayBilling();
+                
 ```
 Step 2: //Establish a connection to Google Play<br>
 
