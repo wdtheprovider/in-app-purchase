@@ -2,6 +2,13 @@
 
 In this repository i'm going to show you how to integrate In-App Purchase of Google Play Billing version 4+ in 6 steps.
 
+Demo <br>
+
+<span> <img src="https://github.com/wdtheprovider/in-app-purchase/blob/master/app/src/main/res/drawable/screen_1.jpg" width="300" height="600">
+<img src="https://github.com/wdtheprovider/in-app-purchase/blob/master/app/src/main/res/drawable/screen_2.jpg" width="300" height="600">
+<img src="https://github.com/wdtheprovider/in-app-purchase/blob/master/app/src/main/res/drawable/screen_3.jpg" width="300" height="600">
+</span>
+
 Pre-requisite
 - Google Play Console Account
 - Published App on Play Store
