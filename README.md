@@ -7,10 +7,13 @@ Pre-requisite
 - Published App on Play Store
 - Tester Device with GMS
 
+YouTube Video: Part-1 | Intro Demo: https://youtu.be/ihL0jW5cFtM
+YouTube Video: Part-2 | Configure Testing Device: https://youtu.be/j6wWVMj-fi8
+YouTube Video: Part-3 | Integrating The Methods to purchase the productus: Subscribe for the video to be released.
 
 ```
 Configure Your Testing device by adding the gmail account to internal testing testers 
-and License testing (Watch the YouTube video for clarity)
+and License testing (Watch the YouTube video for clarity: https://youtu.be/j6wWVMj-fi8 )
 
 
 Setup the in-app purchase products in Google Play Console account
