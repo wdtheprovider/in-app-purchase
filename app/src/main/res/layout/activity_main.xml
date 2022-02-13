@@ -29,7 +29,7 @@
         android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
         android:layout_marginBottom="10dp"
-        android:text="Go to Store"
+        android:text="Consumable Items"
         android:textColor="@color/white" />
 
 
@@ -42,10 +42,34 @@
         android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
         android:layout_marginBottom="10dp"
-        android:background="@color/design_default_color_on_primary"
         android:text="Clear Clicks"
-        android:layout_below="@id/btn_store"
+        android:layout_below="@id/Removed_ad"
         android:textColor="@color/white" />
+
+    <Button
+        android:id="@+id/Removed_ad"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btn_store"
+        android:layout_centerInParent="true"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="Remove AD"
+        android:textColor="@color/white" />
+
+
+
+
+    <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/adView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        ads:adSize="SMART_BANNER"
+        ads:adUnitId="ca-app-pub-3940256099942544/6300978111" />
 
 
 </RelativeLayout>

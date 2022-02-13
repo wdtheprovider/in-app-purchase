@@ -29,6 +29,7 @@ import com.android.billingclient.api.SkuDetailsParams;
 import com.android.billingclient.api.SkuDetailsResponseListener;
 import com.wdtheprovider.sharcourse.R;
 import com.wdtheprovider.sharcourse.adapters.itemAdapter;
+import com.wdtheprovider.sharcourse.utils.Prefs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,8 @@ public class SellingActivity extends AppCompatActivity {
     TextView clicks;
     Button btn_5,btn_15,btn_50;
 
+    Prefs prefs ;
+
     SharedPreferences sharedPreferences;
 
     @Override
@@ -46,22 +49,20 @@ public class SellingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_selling);
 
-        sharedPreferences = this.getSharedPreferences("PREFS", MODE_PRIVATE);
+        prefs = new Prefs(this);
 
         initViews();
 
 
         billingClient = BillingClient.newBuilder(getApplicationContext())
-                .setListener(new PurchasesUpdatedListener() {
-                    @Override
-                    public void onPurchasesUpdated(@NonNull BillingResult billingResult, @Nullable List<Purchase> list) {
-                        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && list != null) {
-                            for (Purchase purchase : list) {
-                                verifyPayment(purchase);
-                            }
+                .setListener((billingResult, list) -> {
+                    if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && list != null) {
+                        for (Purchase purchase : list) {
+                            Log.d("TestA2d",""+list);
+                            verifyPayment(purchase);
                         }
-
                     }
+
                 })
                 .enablePendingPurchases()
                 .build();
@@ -79,7 +80,7 @@ public class SellingActivity extends AppCompatActivity {
         btn_15 = findViewById(R.id.btn_20);
         btn_50 = findViewById(R.id.btn_30);
 
-        clicks.setText("You have "+loadData("clicks")+ " click(s)");
+        clicks.setText("You have "+prefs.getInt("clicks",0)+ " click(s)");
     }
 
     void connectGooglePlayBilling() {
@@ -109,33 +110,29 @@ public class SellingActivity extends AppCompatActivity {
         SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
         params.setSkusList(products).setType(BillingClient.SkuType.INAPP);
 
-        billingClient.querySkuDetailsAsync(params.build(), new SkuDetailsResponseListener() {
-            @SuppressLint({"SetTextI18n", "NotifyDataSetChanged"})
-            @Override
-            public void onSkuDetailsResponse(@NonNull BillingResult billingResult, @Nullable List<SkuDetails> list) {
-                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && list != null) {
+        billingClient.querySkuDetailsAsync(params.build(), (billingResult, list) -> {
+            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK && list != null) {
 
 
-                    for (SkuDetails skuDetails : list) {
-                        if (skuDetails.getSku().equals("clicks_5")) {
-                            btn_5.setText("Add 5 clicks ("+skuDetails.getPrice()+")");
-                            btn_5.setOnClickListener(view -> {
-                                launchPurchaseFlow(skuDetails);
-                            });
-                        } else if (skuDetails.getSku().equals("clicks_10")) {
-                            btn_15.setText("Add 15 clicks ("+skuDetails.getPrice()+")");
-                            btn_15.setOnClickListener(view -> {
-                                launchPurchaseFlow(skuDetails);
-                            });
-                        } else if (skuDetails.getSku().equals("clicks_50")) {
-                            btn_50.setText("Add 50 clicks ("+skuDetails.getPrice()+")");
-                            btn_50.setOnClickListener(view -> {
-                                launchPurchaseFlow(skuDetails);
-                            });
-                        }
+                for (SkuDetails skuDetails : list) {
+                    if (skuDetails.getSku().equals("clicks_5")) {
+                        btn_5.setText("Add 5 clicks ("+skuDetails.getPrice()+")");
+                        btn_5.setOnClickListener(view -> {
+                            launchPurchaseFlow(skuDetails);
+                        });
+                    } else if (skuDetails.getSku().equals("clicks_10")) {
+                        btn_15.setText("Add 15 clicks ("+skuDetails.getPrice()+")");
+                        btn_15.setOnClickListener(view -> {
+                            launchPurchaseFlow(skuDetails);
+                        });
+                    } else if (skuDetails.getSku().equals("clicks_50")) {
+                        btn_50.setText("Add 50 clicks ("+skuDetails.getPrice()+")");
+                        btn_50.setOnClickListener(view -> {
+                            launchPurchaseFlow(skuDetails);
+                        });
                     }
-
                 }
+
             }
         });
 
@@ -155,52 +152,41 @@ public class SellingActivity extends AppCompatActivity {
                 .setPurchaseToken(purchase.getPurchaseToken())
                 .build();
 
-        ConsumeResponseListener listener = new ConsumeResponseListener() {
-            @Override
-            public void onConsumeResponse(@NonNull BillingResult billingResult, @NonNull String s) {
-                if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+        billingClient.consumeAsync(ConsumeParams.newBuilder().setPurchaseToken(purchase.getPurchaseToken()).build(), (billingResult, s) -> {
+            if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                Log.d("TestA2d","Item consumed");
+                Toast.makeText(SellingActivity.this, "Item Consumed", Toast.LENGTH_SHORT).show();
 
-                    if (purchase.getSkus().get(0).equals("clicks_5")) {
-                        updateClicks(5);
-                    } else if (purchase.getSkus().get(0).equals("clicks_10")) {
-                        updateClicks(15);
-                    } else if (purchase.getSkus().get(0).equals("clicks_50")) {
-                        updateClicks(50);
-                    }
-
+                if (purchase.getSkus().get(0).equals("clicks_5")) {
+                    updateClicks(5);
+                } else if (purchase.getSkus().get(0).equals("clicks_10")) {
+                    updateClicks(15);
+                } else if (purchase.getSkus().get(0).equals("clicks_50")) {
+                    updateClicks(50);
                 }
 
             }
-        };
-
-        billingClient.consumeAsync(consumeParams, listener);
+        });
     }
 
     @SuppressLint("SetTextI18n")
     void updateClicks(int v) {
-        Log.d("in-app","you just purchased "+v);
-
-        //Saving the clicks in sharedPrefs
-        saveData("clicks",String.valueOf(v));
+        prefs.setInt("clicks",v);
+        clicks.setText("You have "+prefs.getInt("clicks",0)+ " click(s)");
     }
-
 
     @SuppressLint({"NotifyDataSetChanged", "SetTextI18n"})
     @Override
     protected void onResume() {
         super.onResume();
-        clicks.setText("You have "+loadData("clicks")+ " click(s)");
-
+        clicks.setText("You have "+prefs.getInt("clicks",0)+ " click(s)");
         billingClient.queryPurchasesAsync(
                 BillingClient.SkuType.INAPP,
-                new PurchasesResponseListener() {
-                    @Override
-                    public void onQueryPurchasesResponse(@NonNull BillingResult billingResult, @NonNull List<Purchase> list) {
-                        if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
-                            for (Purchase purchase : list) {
-                                if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED && !purchase.isAcknowledged()) {
-                                    verifyPayment(purchase);
-                                }
+                (billingResult, list) -> {
+                    if (billingResult.getResponseCode() == BillingClient.BillingResponseCode.OK) {
+                        for (Purchase purchase : list) {
+                            if (purchase.getPurchaseState() == Purchase.PurchaseState.PURCHASED && !purchase.isAcknowledged()) {
+                                verifyPayment(purchase);
                             }
                         }
                     }
@@ -208,16 +194,4 @@ public class SellingActivity extends AppCompatActivity {
         );
     }
 
-
-    @SuppressLint("SetTextI18n")
-    public  void saveData(String key, String value) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(key, value);
-        editor.apply();
-        clicks.setText("You have "+loadData("clicks")+ " click(s)");
-    }
-
-    public String loadData(String key) {
-        return sharedPreferences.getString(key, "0");
-    }
 }
