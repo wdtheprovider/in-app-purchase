@@ -2,7 +2,6 @@
 
 Consumable Item In-App Purchases: https://github.com/wdtheprovider/in-app-purchase
 
-
 In this repository i'm going to show you how to integrate In-App Purchases of Google Play Billing version 5+ in 8 steps. I follow the officailly google 
  docs, i'm not using any third-party library
 
@@ -22,27 +21,16 @@ YouTube Video: Part-1 | Intro Demo: [https://youtu.be/nQrsVB7quKw ](https://www.
 <br>YouTube Video: Part-3 | Integrating The Methods to purchase the products: [https://www.youtube.com/watch?v=7cf8yHdXMdA](https://www.youtube.com/watch?v=7cf8yHdXMdA)<br>
 
 ```
+
 Configure Your Testing device by adding the gmail account to internal testing testers 
 and License testing (Watch the YouTube video for clarity: https://youtu.be/j6wWVMj-fi8 )
 
+```
 
-Setup the in-app purchase product in Google Play Console account
-i have already created mine which are 
-Product IDs:
-  
-        productIds = new ArrayList<>();
-        coins = new ArrayList<>();
+```
+Troubleshooting
 
-        productIds.add("10_coins_id");
-        coins.add(10);
-
-        productIds.add("20_coins_id");
-        coins.add(20);
-
-        productIds.add("50_coins_id");
-        coins.add(50);
-
-
+- If Products are not shown on the button, Please check if you configured your testing device with the right gmail you have in Internal Testing and Licence Testing.
 ```
 
 The following methods (These are the methods you need for the IAP System to work, you can copy and paste)
@@ -96,25 +84,50 @@ dependencies {
 ### Step 2: Initialize a BillingClient with PurchasesUpdatedListener<br>
 
 ```java
+
+..... 
   //Initialize a BillingClient with PurchasesUpdatedListener onCreate method
 
-    billingClient = BillingClient.newBuilder(this)
+    BillingClient billingClient;
+    TextView clicks;
+    Button btn_5;
+    Prefs prefs ;
+    List<ProductDetails> productDetailsList;
+    Activity activity;
+    String TAG = "TestInApp";
+    Handler handler;
+    ProgressBar progress_circular;
+    List<String> productIds;
+    List<Integer> coins;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_selling);
+
+        initViews();
+        activity = this;
+
+        billingClient = BillingClient.newBuilder(this)
                 .enablePendingPurchases()
                 .setListener(
-                        new PurchasesUpdatedListener() {
-                            @Override
-                            public void onPurchasesUpdated(@NonNull BillingResult billingResult, @Nullable List<Purchase> list) {
-                               if(billingResult.getResponseCode()==BillingClient.BillingResponseCode.OK && list !=null) {
-                                   for (Purchase purchase: list){
-                                       verifySubPurchase(purchase);
-                                   }
-                               }
+                        (billingResult, list) -> {
+                            if(billingResult.getResponseCode()==BillingClient.BillingResponseCode.OK && list != null) {
+                                for (Purchase purchase: list){
+                                    verifyPurchase(purchase);
+                                }
                             }
                         }
                 ).build();
 
         //start the connection after initializing the billing client
-        establishConnection();
+        connectGooglePlayBilling();
+
+        btn_5.setOnClickListener(v -> {
+            //we are opening product at index zero since we only have one product
+            launchPurchaseFlow(productDetailsList.get(0));
+        });
+    }
                 
 ```
 ### Step 3: Establish a connection to Google Play<br>
@@ -142,14 +155,15 @@ dependencies {
 ### Step 4: Show products available to buy<br>
 
 ```java
-@SuppressLint("SetTextI18n")
-   
-    void showProducts() {
 
+@SuppressLint("SetTextI18n")
+
+    void showProducts() {
+    
         ImmutableList<QueryProductDetailsParams.Product> productList = ImmutableList.of(
                 //Product 1
                 QueryProductDetailsParams.Product.newBuilder()
-                        .setProductId("coins_id")
+                        .setProductId("test_coins_111")
                         .setProductType(BillingClient.ProductType.INAPP)
                         .build()
         );
@@ -159,23 +173,34 @@ dependencies {
                 .build();
 
         billingClient.queryProductDetailsAsync(params, (billingResult, list) -> {
+            //Clear the list
             productDetailsList.clear();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d(TAG, "posted delayed");
-                    loadProducts.setVisibility(View.INVISIBLE); //
-                    productDetailsList.addAll(list);
-                    Log.d(TAG, productDetailsList.size() + " number of products");
-                    adapter = new BuyCoinsAdapter(getApplicationContext(), productDetailsList, BuyCoinActivity.this);
-                    recyclerView.setHasFixedSize(true);
-                    recyclerView.setLayoutManager(new LinearLayoutManager(BuyCoinActivity.this, LinearLayoutManager.VERTICAL, false));
-                    recyclerView.setAdapter(adapter);
-                }
-            }, 2000);
+
+            Log.d(TAG,"Size "+list.size());
+
+            //Handler to delay by two seconds to wait for google play to return the list of products.
+            handler.postDelayed(() -> {
+                //Adding new productList, returned from google play
+                productDetailsList.addAll(list);
+
+                //Since we have one product, we use index zero (0) from list
+                ProductDetails productDetails = list.get(0);
+
+                //Getting product details
+                String price = productDetails.getOneTimePurchaseOfferDetails().getFormattedPrice();
+                String productName = productDetails.getName();
+
+                //Updating the UI
+                //If the product is not showing then it means that you didn't properly setup your Testing email.
+                btn_5.setText(price +"  -  "+productName);
+
+                //Showing the button.
+                btn_5.setVisibility(View.VISIBLE);
+                progress_circular.setVisibility(View.INVISIBLE);
+
+                }, 2000);
         });
     }
-
     
 ```
 ### Step 5: Launch the purchase flow<br>
@@ -183,7 +208,6 @@ dependencies {
 ```java
   
      void launchPurchaseFlow(ProductDetails productDetails) {
-
         ImmutableList<BillingFlowParams.ProductDetailsParams> productDetailsParamsList =
                 ImmutableList.of(
                         BillingFlowParams.ProductDetailsParams.newBuilder()
@@ -193,16 +217,14 @@ dependencies {
         BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
                 .setProductDetailsParamsList(productDetailsParamsList)
                 .build();
-
-        BillingResult billingResult = billingClient.launchBillingFlow(activity, billingFlowParams);
+        billingClient.launchBillingFlow(activity, billingFlowParams);
     }
 
-
-    
 ```
 ### Step 6: Processing purchases / Verify Payment<br>
 
 ```java
+
   void verifyPurchase(Purchase purchase) {
         ConsumeParams consumeParams = ConsumeParams.newBuilder()
                 .setPurchaseToken(purchase.getPurchaseToken())
@@ -214,8 +236,6 @@ dependencies {
         };
 
         billingClient.consumeAsync(consumeParams, listener);
-
-
     }
     
 ```
@@ -238,42 +258,20 @@ dependencies {
                     }
                 }
         );
-
     }
-
     
 ```
-
 
 ### Step 8: Give user coins <br>
 
 ```java
 
-  
-    @SuppressLint("SetTextI18n")
+SuppressLint("SetTextI18n")
     void giveUserCoins(Purchase purchase) {
-
-        Log.d("TestINAPP", purchase.getProducts().get(0));
-        Log.d("TestINAPP", purchase.getQuantity() + " Quantity");
-
-        for(int i=0;i<productIds.size();i++){
-            if(purchase.getProducts().get(0).equals(productIds.get(i))){
-                Log.d(TAG,"Balance "+prefs.getInt("coins",0)+ " Coins");
-                Log.d(TAG,"Allocating "+coins.get(i) + " Coins");
-
-                //set coins
-                prefs.setInt("coins",coins.get(i) + prefs.getInt("coins",0));
-
-                Log.d(TAG,"New Balance "+prefs.getInt("coins",0)+ " Coins");
-
-                //Update UI
-                txt_coins.setText(prefs.getInt("coins",0)+"");
-            }
-        }
+        //set coins
+        prefs.setInt("coins",(coins.get(0) * purchase.getQuantity()) + prefs.getInt("coins",0));
+        //Update UI
+        clicks.setText("You have "+prefs.getInt("coins",0)+ " coins(s)");
     }
  
 ```
-
-<br> 
-Buy recyclerviewer adapter: https://dingi.icu/store/
-<br>
