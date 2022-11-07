@@ -1,14 +1,14 @@
-package com.wdtheprovider.sharcourse.utils;
+package com.wdtheprovider.inapppurchase.utils;
 
 import android.content.Context;
 
 import android.content.SharedPreferences;
 
-import com.wdtheprovider.sharcourse.R;
+import com.wdtheprovider.inapppurchase.R;
 
 public class Prefs {
 
-    private final Context context;
+    public final Context context;
     private final SharedPreferences sharedPreferences;
     private final SharedPreferences.Editor editor;
 
@@ -17,8 +17,6 @@ public class Prefs {
         sharedPreferences = context.getSharedPreferences(context.getString(R.string.app_name), Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
     }
-
-
 
     public void setInt(String key,int value) {
         editor.putInt(key, value);

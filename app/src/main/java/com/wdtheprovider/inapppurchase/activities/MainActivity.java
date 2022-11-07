@@ -1,8 +1,7 @@
-package com.wdtheprovider.sharcourse.activities;
+package com.wdtheprovider.inapppurchase.activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -25,8 +24,8 @@ import com.android.billingclient.api.SkuDetailsResponseListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
-import com.wdtheprovider.sharcourse.R;
-import com.wdtheprovider.sharcourse.utils.Prefs;
+import com.wdtheprovider.inapppurchase.R;
+import com.wdtheprovider.inapppurchase.utils.Prefs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,13 +80,13 @@ public class MainActivity extends AppCompatActivity {
 
 
         btn_store.setOnClickListener(view -> {
-            startActivity(new Intent(this, SellingActivity.class));
+            startActivity(new Intent(this, ConsumableItemsActivity.class));
         });
 
         btn_clear.setOnClickListener(view -> {
-            prefs.removeKey("clicks");
+            prefs.removeKey("coins");
             Toast.makeText(MainActivity.this, "Clicks cleared", Toast.LENGTH_SHORT).show();
-            clicks.setText("You have " + prefs.getInt("clicks",0) + " click(s)");
+            clicks.setText("You have " + prefs.getInt("coins",0) + " coin(s)");
         });
 
     }
@@ -100,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         btn_store = findViewById(R.id.btn_store);
         btn_clear = findViewById(R.id.btn_clear);
 
-        clicks.setText("You have " + prefs.getInt("clicks",0) + " click(s)");
+        clicks.setText("You have " + prefs.getInt("coins",0) + " coin(s)");
     }
 
 
@@ -109,8 +108,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        clicks.setText("You have " + prefs.getInt("clicks",0) + " click(s)");
-        Toast.makeText(MainActivity.this, " Ad- "+prefs.getRemoveAd(), Toast.LENGTH_SHORT).show();
+        clicks.setText("You have " + prefs.getInt("coins",0) + " coin(s)");
+       // Toast.makeText(MainActivity.this, " Ad- "+prefs.getRemoveAd(), Toast.LENGTH_SHORT).show();
     }
 
 
