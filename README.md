@@ -105,7 +105,20 @@ dependencies {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_selling);
 
-        initViews();
+        clicks = findViewById(R.id.clicks);
+        btn_5 = findViewById(R.id.btn_10);
+        progress_circular = findViewById(R.id.progress_circular);
+
+        prefs = new Prefs(this);
+        handler = new Handler();
+
+        productIds = new ArrayList<>();
+        coins = new ArrayList<>();
+        productDetailsList = new ArrayList<>();
+
+        productIds.add("10_coins_id");
+        coins.add(10); 
+        
         activity = this;
 
         billingClient = BillingClient.newBuilder(this)
